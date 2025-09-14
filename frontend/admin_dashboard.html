@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Human SOS Alert</title>
+<style>
+* {margin:0; padding:0; box-sizing:border-box;}
+body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1724; color: #f5f5f5; display: flex; min-height:100vh; }
+.sidebar { width: 250px; background: linear-gradient(180deg,#1b1f3b,#111827); color:#fff; display:flex; flex-direction:column; position: fixed; height:100%; padding:20px; box-shadow:4px 0 12px rgba(0,0,0,0.4);}
+.sidebar h2 { text-align:center; margin-bottom:30px; font-size:1.4rem; letter-spacing:1px; color:#7c3ae0; }
+.menu a { display:block; padding:12px 18px; margin:6px 0; text-decoration:none; color:#f5f5f5; border-radius:8px; transition:background 0.3s; font-weight:500; cursor:pointer;}
+.menu a:hover { background: rgba(124,58,224,0.2); }
+.main-content { margin-left:250px; flex:1; display:flex; flex-direction:column; min-height:100vh; padding:24px; }
+.header { background:#1b1f3b; padding:16px 24px; box-shadow:0 2px 6px rgba(0,0,0,0.5); display:flex; justify-content:space-between; align-items:center; border-radius:12px; }
+.header h1 { font-size:1.3rem; color:#e17055; }
+.header button { padding:8px 14px; background:linear-gradient(90deg,#7c3ae0,#e17055); color:#fff; border:none; border-radius:6px; cursor:pointer; font-weight:bold; }
+.section { display:none; margin-top:20px; }
+table { width:100%; border-collapse:separate; border-spacing:0; background: linear-gradient(135deg, #1b1f3b, #111827); border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(0,0,0,0.6);}
+th, td { padding:14px 16px; text-align:left; }
+th { background: linear-gradient(90deg,#7c3ae0,#e17055); color:#fff; font-weight:600; }
+tr { background: rgba(34,40,49,0.85); transition: transform 0.3s, box-shadow 0.3s; }
+tr:nth-child(even){ background: rgba(34,40,49,0.7); }
+tr:hover{ transform:translateY(-3px); box-shadow:0 8px 18px rgba(124,58,224,0.4); }
+button.manage-btn { background:linear-gradient(90deg,#7c3ae0,#e17055); border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:600; }
+button.manage-btn:hover { opacity:0.9; }
+.alert-pending{background:#facc15 !important; color:#111;}
+.alert-urgent{background:#f87171 !important; color:#fff;}
+.alert-resolved{background:#34d399 !important; color:#111;}
+@media(max-width:768px){ .sidebar { width:200px; } .main-content{ margin-left:200px; } }
+@media(max-width:576px){ .sidebar{ position:relative; width:100%; height:auto; flex-direction:row; justify-content:space-around; } .main-content{ margin-left:0; } .header{ flex-direction:column; align-items:flex-start; } }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>👮 Admin Panel</h2>
+  <div class="menu">
+    <a onclick="showSection('profile')">👤 Profile</a>
+    <a onclick="showSection('users')">📋 Manage Users</a>
+    <a onclick="showSection('alerts')">🚨 SOS Alerts</a>
+    <a onclick="showSection('stations')">🏢 Police Stations</a>
+    <a onclick="showSection('settings')">⚙️ Settings</a>
+    <a onclick="logout()">↩️ Logout</a>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <h1>Welcome, Admin</h1>
+    <button onclick="alert('Settings clicked!')">⚙️ Settings</button>
+  </div>
+
+  <!-- Profile -->
+  <div id="profile" class="section">
+    <h2>Admin Profile</h2>
+    <p><strong>Username:</strong> Admin</p>
+    <p><strong>Email:</strong> admin@example.com</p>
+    <p><strong>Phone:</strong> 01700000000</p>
+    <p><strong>Role:</strong> Super Admin</p>
+    <p><strong>Access Level:</strong> Full</p>
+    <p><strong>Last Login:</strong> 06-Sep-2025 14:30</p>
+    <button onclick="alert('Change Password clicked!')" class="manage-btn">Change Password</button>
+  </div>
+
+  <!-- Users -->
+  <div id="users" class="section">
+    <h2>Manage Users</h2>
+    <table id="userTable">
+      <thead><tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- SOS Alerts -->
+  <div id="alerts" class="section">
+    <h2>SOS Alerts</h2>
+    <table id="alertsTable">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>User</th>
+          <th>Location</th>
+          <th>Message</th> <!-- ✅ Added Message -->
+          <th>Priority</th>
+          <th>Created At</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Police Stations -->
+  <div id="stations" class="section">
+    <h2>Police Stations</h2>
+    <table id="stationTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Mobile</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="section">
+    <h2>Settings</h2>
+    <div class="settings-card">
+      <h3>Profile Settings</h3>
+      <p>Edit profile info.</p>
+      <button class="manage-btn" onclick="alert('Profile settings clicked!')">Edit Profile</button>
+    </div>
+    <div class="settings-card">
+      <h3>Account Security</h3>
+      <p>Change password, enable 2FA.</p>
+      <button class="manage-btn" onclick="alert('Account security clicked!')">Update Security</button>
+    </div>
+  </div>
+</div>
+
+<script src="admin_dashboard.js"></script>
+</body>
+</html>

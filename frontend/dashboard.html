@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Dashboard - Human SOS Alert</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🧍 User Panel</h2>
+  <div class="menu">
+    <a onclick="showSection('profile')">👤 Profile</a>
+    <a onclick="showSection('sendSOS')">🚨 Send SOS</a>
+    <a onclick="showSection('alerts')">📋 SOS History</a>
+    <a onclick="showSection('stations')">🏢 Nearby Stations</a>
+    <a onclick="showSection('settings')">⚙️ Settings</a>
+    <a onclick="logout()">↩️ Logout</a>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <h1 id="welcomeUser">Welcome, User</h1>
+    <button onclick="toggleTheme()">🌓 Toggle Theme</button>
+  </div>
+
+  <div id="profile" class="section"></div>
+  <div id="sendSOS" class="section">
+    <h2>Send SOS</h2>
+    <input type="text" id="sosLocation" placeholder="Enter location">
+    <select id="sosPriority">
+      <option value="urgent">Urgent</option>
+      <option value="pending">Pending</option>
+      <option value="resolved">Resolved</option>
+    </select>
+    <button onclick="sendSOS()">Send</button>
+  </div>
+
+  <div id="alerts" class="section">
+    <h2>SOS History</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Location</th><th>Priority</th><th>Date/Time</th></tr>
+      </thead>
+      <tbody id="alertTable"></tbody>
+    </table>
+  </div>
+
+  <div id="stations" class="section">
+    <h2>Nearby Stations</h2>
+    <table>
+      <thead><tr><th>Name</th><th>Address</th></tr></thead>
+      <tbody id="stationTable"></tbody>
+    </table>
+  </div>
+
+  <div id="settings" class="section">
+    <h2>Settings</h2>
+    <button onclick="changePassword()">Change Password</button>
+  </div>
+</div>
+
+<script src="main.js"></script>
+</body>
+</html>

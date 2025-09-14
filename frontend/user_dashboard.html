@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Dashboard - Human SOS Alert</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif;}
+  body{background:#0f1724;color:#f5f5f5;display:flex;min-height:100vh;}
+  .sidebar{width:250px;background:linear-gradient(180deg,#1b1f3b,#111827);display:flex;flex-direction:column;position:fixed;height:100%;left:0;top:0;padding:20px;box-shadow:4px 0 12px rgba(0,0,0,0.4);}
+  .sidebar h2{text-align:center;margin-bottom:30px;font-size:1.4rem;color:#7c3ae0;letter-spacing:1px;}
+  .menu a{display:block;padding:12px 18px;margin:6px 0;text-decoration:none;color:#f5f5f5;border-radius:8px;transition:0.3s;cursor:pointer;}
+  .menu a:hover{background: rgba(124,58,224,0.2);}
+  .main-content{margin-left:250px;flex:1;display:flex;flex-direction:column;min-height:100vh;padding:24px;}
+  .header{background:#1b1f3b;padding:16px 24px;box-shadow:0 2px 6px rgba(0,0,0,0.5);display:flex;justify-content:space-between;align-items:center;border-radius:12px;margin-bottom:20px;}
+  .header h1{font-size:1.3rem;color:#e17055;}
+  .header button{padding:8px 14px;background:linear-gradient(90deg,#7c3ae0,#e17055);color:#fff;border:none;border-radius:6px;cursor:pointer;font-weight:bold;}
+  .section{display:none;margin-top:20px;}
+  table{width:100%;border-collapse:separate;border-spacing:0;background: linear-gradient(135deg,#1b1f3b,#111827);border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,0.6);}
+  th, td{padding:14px 16px;text-align:left;}
+  th{background: linear-gradient(90deg,#7c3ae0,#e17055);color:#fff;font-weight:600;}
+  tr{background: rgba(34,40,49,0.85);transition: transform 0.3s, box-shadow 0.3s;}
+  tr:nth-child(even){background: rgba(34,40,49,0.7);}
+  tr:hover{transform:translateY(-3px);box-shadow:0 8px 18px rgba(124,58,224,0.4);}
+  .alert-pending{background: #facc15 !important; color:#111;}
+  .alert-urgent{background: #f87171 !important; color:#fff;}
+  .alert-resolved{background: #34d399 !important; color:#111;}
+  textarea{width:100%;padding:8px;border-radius:6px;border:none;background:#1b1f3b;color:#f5f5f5;}
+  input[type="text"]{width:100%;padding:8px;border-radius:6px;border:none;background:#1b1f3b;color:#f5f5f5;}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>🧍 User Panel</h2>
+  <div class="menu">
+    <a onclick="showSection('profile')">👤 Profile</a>
+    <a onclick="showSection('sendSOS')">🚨 Send SOS</a>
+    <a onclick="showSection('alerts')">📋 SOS History</a>
+    <a onclick="showSection('stations')">🏢 Nearby Stations</a>
+    <a onclick="showSection('settings')">⚙️ Settings</a>
+    <a onclick="logout()">↩️ Logout</a>
+  </div>
+</div>
+
+<div class="main-content">
+  <div class="header">
+    <h1 id="welcomeUser">Welcome, User</h1>
+    <button onclick="toggleTheme()">🌓 Toggle Theme</button>
+  </div>
+
+  <!-- Profile -->
+  <div id="profile" class="section">
+    <h2>Profile</h2>
+    <p><strong>Username:</strong> <span id="username"></span></p>
+    <p><strong>Email:</strong> <span id="email"></span></p>
+    <p><strong>Phone:</strong> <span id="phone"></span></p>
+    <p><strong>Role:</strong> <span id="role"></span></p>
+    <p><strong>Last Login:</strong> <span id="lastLogin"></span></p>
+  </div>
+
+  <!-- Send SOS -->
+  <div id="sendSOS" class="section">
+    <h2>Send SOS</h2>
+    <input type="text" id="sosLocation" placeholder="Enter location"><br><br>
+    <textarea id="sosMessage" placeholder="Enter emergency message" rows="3"></textarea><br><br>
+    <select id="sosPriority">
+      <option value="urgent">Urgent</option>
+      <option value="pending">Pending</option>
+      <option value="resolved">Resolved</option>
+    </select>
+    <button onclick="sendSOS()">Send</button>
+  </div>
+
+  <!-- SOS Alerts -->
+  <div id="alerts" class="section">
+    <h2>SOS History</h2>
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Location</th><th>Message</th><th>Priority</th><th>Date/Time</th></tr>
+      </thead>
+      <tbody id="alertTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Nearby Stations -->
+  <div id="stations" class="section">
+    <h2>Nearby Stations</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Address</th>
+          <th>Mobile</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody id="stationTable"></tbody>
+    </table>
+  </div>
+
+  <!-- Settings -->
+  <div id="settings" class="section">
+    <h2>Settings</h2>
+    <button onclick="changePassword()">Change Password</button>
+  </div>
+</div>
+
+<script>
+function showSection(id){
+  document.querySelectorAll('.section').forEach(s=>s.style.display='none');
+  document.getElementById(id).style.display='block';
+}
+showSection('profile');
+
+function toggleTheme(){document.body.classList.toggle('dark');}
+
+// ✅ Logged-in userId
+const userId = localStorage.getItem('userId');
+if(!userId){
+  alert("Not logged in! Redirecting...");
+  window.location.href = "/frontend/login_registration_page.html";
+}
+
+// Load profile
+async function loadProfile(){
+  try {
+    const res = await fetch(`http://localhost:8080/api/users/${userId}`);
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    document.getElementById('username').innerText = data.username;
+    document.getElementById('email').innerText = data.email || '-';
+    document.getElementById('phone').innerText = data.phone || '-';
+    document.getElementById('role').innerText = data.role;
+    document.getElementById('lastLogin').innerText = data.last_login ? new Date(data.last_login).toLocaleString() : '-';
+    document.getElementById('welcomeUser').innerText = `Welcome, ${data.username}`;
+  } catch(e){
+    alert("Error loading profile: "+e.message);
+  }
+}
+
+// Load alerts
+async function loadAlerts(){
+  try{
+    const res = await fetch(`http://localhost:8080/api/users/${userId}/alerts`);
+    const alerts = await res.json();
+    const tbody = document.getElementById('alertTable');
+    tbody.innerHTML = '';
+    alerts.forEach(a=>{
+      const tr = document.createElement('tr');
+      const priorityClass = a.priority.toLowerCase(); 
+      tr.className = `alert-${priorityClass}`;
+      tr.innerHTML = `<td>${a.id}</td><td>${a.location}</td><td>${a.message}</td><td>${a.priority}</td><td>${new Date(a.created_at).toLocaleString()}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch(e){
+    console.error("Error loading alerts:", e);
+  }
+}
+
+// Send SOS
+async function sendSOS(){
+  const location = document.getElementById('sosLocation').value.trim();
+  const message = document.getElementById('sosMessage').value.trim();
+  const priority = document.getElementById('sosPriority').value;
+
+  if(!location || !message){
+    alert('Location এবং Message অবশ্যই দিতে হবে');
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:8080/api/users/${userId}/alerts`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ location, priority, message })
+    });
+    const data = await res.json();
+    if(data.success){
+      loadAlerts(); 
+      alert('SOS পাঠানো হয়েছে!');
+      document.getElementById('sosLocation').value = '';
+      document.getElementById('sosMessage').value = '';
+    } else {
+      alert(data.error || 'SOS পাঠাতে ব্যর্থ');
+    }
+  } catch(e){
+    alert("SOS পাঠানোর সময় সমস্যা হয়েছে: "+e.message);
+  }
+}
+
+// Load stations with Mobile & Email
+async function loadStations(){
+  try{
+    const res = await fetch(`http://localhost:8080/api/users/${userId}/stations`);
+    const stations = await res.json();
+    const tbody = document.getElementById('stationTable');
+    tbody.innerHTML='';
+    stations.forEach(s=>{
+      const name = s.name || '-';
+      const address = s.address || '-';
+      const mobile = s.mobile || s.phone || '-';
+      const email = s.email || s.email_address || '-';
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${name}</td><td>${address}</td><td>${mobile}</td><td>${email}</td>`;
+      tbody.appendChild(tr);
+    });
+  } catch(e){ console.error("Error loading stations:", e); }
+}
+
+// Change password
+function changePassword(){
+  const newPass = prompt("Enter new password");
+  if(newPass) alert("Password updated (simulated)");
+}
+
+// Logout
+function logout(){
+  localStorage.removeItem('userId');
+  window.location.href = "/frontend/login_registration_page.html";
+}
+
+// Initialize
+loadProfile();
+loadAlerts();
+loadStations();
+setInterval(loadAlerts,5000);
+</script>
+</body>
+</html>
